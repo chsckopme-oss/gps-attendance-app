@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Attendance - Admin System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container { 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .header { 
+            background: #2c3e50; 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        .admin-badge {
+            background: #e74c3c;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .tabs { 
+            display: flex; 
+            background: #34495e; 
+            flex-wrap: wrap;
+        }
+        .tab { 
+            flex: 1; 
+            padding: 15px 10px; 
+            text-align: center; 
+            color: white; 
+            cursor: pointer; 
+            border: none; 
+            background: none; 
+            font-size: 14px; 
+            min-width: 120px;
+        }
+        .tab.active { 
+            background: #e74c3c; 
+        }
+        .content { 
+            padding: 20px; 
+        }
+        .tab-content { 
+            display: none; 
+        }
+        .tab-content.active { 
+            display: block; 
+        }
+        .camera-box { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            position: relative;
+        }
+        #video, #captured-image { 
+            width: 100%; 
+            max-width: 300px; 
+            border: 3px solid #3498db; 
+            border-radius: 10px; 
+        }
+        .location-box { 
+            background: #ecf0f1; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 15px 0; 
+            font-size: 14px;
+        }
+        .btn { 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin: 5px;
+        }
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .btn:active { 
+            transform: scale(0.98); 
+        }
+        .btn-capture { 
+            background: #e74c3c; 
+        }
+        .btn-success { 
+            background: #27ae60; 
+        }
+        .btn-warning {
+            background: #f39c12;
+        }
+        .btn-excel {
+            background: #217346;
+        }
+        .btn-admin {
+            background: #8e44ad;
+        }
+        .status { 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            font-size: 14px;
+        }
+        .status.success { 
+            background: #d4edda; 
+            color: #155724; 
+        }
+        .status.error { 
+            background: #f8d7da; 
+            color: #721c24; 
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .attendance-item { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 10px; 
+            border-left: 4px solid #3498db; 
+            font-size: 14px;
+        }
+        .coordinates { 
+            background: #2c3e50; 
+            color: white; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            margin: 5px 0;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .address-box {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .form-group { 
+            margin: 15px 0; 
+        }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 16px;
+        }
+        .permission-help { 
+            background: #fff3cd; 
+            color: #856404; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .info-overlay {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            line-height: 1.3;
+        }
+        .timestamp {
+            font-size: 11px;
+            color: #3498db;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .admin-section {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid #3498db;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .data-table th {
+            background: #34495e;
+            color: white;
+        }
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 GPS Attendance - Admin System <span class="admin-badge">ADMIN</span></h1>
+            <p>Enterprise Data Management & Excel Export</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('capture')">Attendance</button>
+            <button class="tab" onclick="showTab('history')">Records</button>
+            <button class="tab" onclick="showTab('analytics')">Analytics</button>
+            <button class="tab" onclick="showTab('export')">Excel Export</button>
+            <button class="tab" onclick="showTab('admin')">Admin</button>
+        </div>
+
+        <div class="content">
+            <!-- Capture Tab -->
+            <div id="capture-tab" class="tab-content active">
+                <div class="admin-section">
+                    <h3>👥 Employee Attendance Capture</h3>
+                    <p>Capture photos with GPS location and timestamp</p>
+                </div>
+
+                <div class="form-group">
+                    <label>👤 Employee Name:</label>
+                    <input type="text" id="employeeName" placeholder="Enter full name">
+                </div>
+                
+                <div class="form-group">
+                    <label>🆔 Employee ID:</label>
+                    <input type="text" id="employeeId" placeholder="EMP001">
+                </div>
+
+                <div class="form-group">
+                    <label>🏢 Department:</label>
+                    <select id="department">
+                        <option value="">Select Department</option>
+                        <option value="HR">Human Resources</option>
+                        <option value="IT">Information Technology</option>
+                        <option value="OPS">Operations</option>
+                        <option value="SALES">Sales</option>
+                        <option value="MARKETING">Marketing</option>
+                        <option value="FINANCE">Finance</option>
+                    </select>
+                </div>
+
+                <div class="camera-box">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <div id="image-container" style="display: none; position: relative;">
+                        <img id="captured-image" style="width: 100%; max-width: 300px; border-radius: 10px;">
+                        <div id="info-overlay" class="info-overlay"></div>
+                    </div>
+                    <div id="camera-status" class="status info">Initializing camera...</div>
+                    
+                    <div class="camera-controls">
+                        <button onclick="switchCamera('user')" class="btn btn-small">📱 Front Camera</button>
+                        <button onclick="switchCamera('environment')" class="btn btn-small">🌄 Rear Camera</button>
+                    </div>
+                </div>
+
+                <div class="location-box">
+                    <h3>📍 Location Verification</h3>
+                    <div id="location-status" class="status info">Acquiring location...</div>
+                    <div class="timestamp" id="location-timestamp">Time: --</div>
+                    <div id="coordinates" class="coordinates">Coordinates: --</div>
+                    <div id="address" class="address-box">Address: --</div>
+                    
+                    <div class="button-group">
+                        <button onclick="requestLocation()" class="btn">📍 Get Location</button>
+                        <button onclick="getPreciseLocation()" class="btn btn-warning">🎯 High Accuracy</button>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="capture-btn" class="btn btn-capture">📸 Capture Attendance</button>
+                    <button id="retake-btn" class="btn" style="display: none;">🔄 Retake Photo</button>
+                    <button id="submit-btn" class="btn btn-success" style="display: none;">✅ Save to Database</button>
+                </div>
+
+                <div id="message" class="status" style="display: none;"></div>
+            </div>
+
+            <!-- Records Tab -->
+            <div id="history-tab" class="tab-content">
+                <div class="admin-section">
+                    <h3>📋 Attendance Records Database</h3>
+                    <div class="button-group">
+                        <button onclick="loadAllRecords()" class="btn">🔄 Refresh Data</button>
+                        <button onclick="filterTodayRecords()" class="btn btn-success">📅 Today's Records</button>
+                        <button onclick="clearAllRecords()" class="btn btn-capture">🗑️ Clear All</button>
+                    </div>
+                </div>
+                <div id="records-list">
+                    <!-- Records will appear here -->
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics-tab" class="tab-content">
+                <div class="admin-section">
+                    <h3>📈 Attendance Analytics</h3>
+                    <div class="stats-grid" id="stats-container">
+                        <!-- Stats will be populated here -->
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>👥 Department-wise Summary</h3>
+                    <div id="department-stats">
+                        <!-- Department stats will appear here -->
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📊 Recent Activity</h3>
+                    <table class="data-table" id="recent-activity">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Employee</th>
+                                <th>Department</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Recent activity will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Export Tab -->
+            <div id="export-tab" class="tab-content">
+                <div class="admin-section">
+                    <h3>📤 Excel Export & Data Management</h3>
+                    <p>Export attendance data to Excel format for reporting</p>
+                    
+                    <div class="button-group">
+                        <button onclick="exportToExcel()" class="btn btn-excel">💾 Export to Excel</button>
+                        <button onclick="exportTodayToExcel()" class="btn btn-success">📅 Today's Data</button>
+                        <button onclick="exportAllToExcel()" class="btn btn-warning">📊 All Data</button>
+                        <button onclick="generateReport()" class="btn btn-admin">📈 Generate Report</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>🔧 Data Management</h3>
+                    <div class="button-group">
+                        <button onclick="backupData()" class="btn">💾 Backup Data</button>
+                        <button onclick="restoreData()" class="btn btn-warning">🔄 Restore Data</button>
+                        <button onclick="importFromExcel()" class="btn btn-success">📥 Import Excel</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📋 Export Preview</h3>
+                    <div id="export-preview">
+                        <!-- Export preview will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="admin-tab" class="tab-content">
+                <div class="admin-section">
+                    <h3>⚙️ System Administration</h3>
+                    
+                    <div class="form-group">
+                        <label>🏢 Company Name:</label>
+                        <input type="text" id="companyName" placeholder="Enter company name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📧 Admin Email:</label>
+                        <input type="email" id="adminEmail" placeholder="admin@company.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>🕒 Auto Backup:</label>
+                        <select id="autoBackup">
+                            <option value="disabled">Disabled</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button onclick="saveAdminSettings()" class="btn btn-success">💾 Save Settings</button>
+                        <button onclick="resetSystem()" class="btn btn-capture">🔄 Reset System</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📊 System Information</h3>
+                    <div id="system-info">
+                        <!-- System info will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced data storage with structured format
+        const STORAGE_KEYS = {
+            ATTENDANCE: 'attendance_records',
+            SETTINGS: 'admin_settings',
+            BACKUP: 'data_backup'
+        };
+
+        let currentLocation = null;
+        let currentStream = null;
+        let currentFacingMode = 'user';
+        let currentAddress = "Address not available";
+
+        // Initialize system
+        function initializeSystem() {
+            loadAdminSettings();
+            updateSystemInfo();
+            startCamera('user');
+            setTimeout(() => getLocation(false), 1000);
+        }
+
+        // Enhanced data structure for enterprise use
+        function createAttendanceRecord(employeeData, locationData, photoData) {
+            const now = new Date();
+            return {
+                recordId: 'REC_' + now.getTime(),
+                employee: {
+                    id: employeeData.id,
+                    name: employeeData.name,
+                    department: employeeData.department
+                },
+                attendance: {
+                    timestamp: now.toISOString(),
+                    date: now.toLocaleDateString(),
+                    time: now.toLocaleTimeString(),
+                    day: now.toLocaleDateString('en', { weekday: 'long' })
+                },
+                location: {
+                    coordinates: {
+                        latitude: locationData.latitude,
+                        longitude: locationData.longitude
+                    },
+                    address: locationData.address,
+                    accuracy: locationData.accuracy,
+                    googleMapsUrl: `https://maps.google.com/?q=${locationData.latitude},${locationData.longitude}`
+                },
+                verification: {
+                    photo: photoData,
+                    cameraUsed: currentFacingMode === 'user' ? 'Front' : 'Rear',
+                    deviceInfo: navigator.userAgent,
+                    verified: true
+                },
+                system: {
+                    created: now.toISOString(),
+                    version: '1.0',
+                    status: 'active'
+                }
+            };
+        }
+
+        // Save record to database
+        function saveAttendanceRecord(record) {
+            let records = getAllRecords();
+            records.push(record);
+            localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(records));
+            
+            // Update analytics
+            updateAnalytics();
+            
+            return record;
+        }
+
+        // Get all records
+        function getAllRecords() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEYS.ATTENDANCE) || '[]');
+        }
+
+        // Get today's records
+        function getTodayRecords() {
+            const today = new Date().toLocaleDateString();
+            return getAllRecords().filter(record => record.attendance.date === today);
+        }
+
+        // Excel Export Functions
+        function exportToExcel() {
+            const records = getAllRecords();
+            if (records.length === 0) {
+                showMessage('❌ No data to export', 'error');
+                return;
+            }
+
+            // Convert to Excel format
+            const excelData = records.map(record => ({
+                'Record ID': record.recordId,
+                'Employee ID': record.employee.id,
+                'Employee Name': record.employee.name,
+                'Department': record.employee.department,
+                'Date': record.attendance.date,
+                'Time': record.attendance.time,
+                'Day': record.attendance.day,
+                'Latitude': record.location.coordinates.latitude,
+                'Longitude': record.location.coordinates.longitude,
+                'Address': record.location.address,
+                'Accuracy (m)': record.location.accuracy,
+                'Camera Used': record.verification.cameraUsed,
+                'Google Maps': record.location.googleMapsUrl,
+                'Verified': record.verification.verified ? 'Yes' : 'No'
+            }));
+
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Attendance Records');
+            
+            // Generate Excel file
+            const company = localStorage.getItem('companyName') || 'Company';
+            const date = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Attendance_Records_${company}_${date}.xlsx`);
+            
+            showMessage('✅ Excel file exported successfully!', 'success');
+        }
+
+        function exportTodayToExcel() {
+            const records = getTodayRecords();
+            if (records.length === 0) {
+                showMessage('❌ No records for today', 'error');
+                return;
+            }
+
+            const excelData = records.map(record => ({
+                'Record ID': record.recordId,
+                'Employee ID': record.employee.id,
+                'Employee Name': record.employee.name,
+                'Department': record.employee.department,
+                'Time': record.attendance.time,
+                'Latitude': record.location.coordinates.latitude,
+                'Longitude': record.location.coordinates.longitude,
+                'Address': record.location.address,
+                'Camera Used': record.verification.cameraUsed
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Today's Attendance");
+            
+            const company = localStorage.getItem('companyName') || 'Company';
+            const today = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Today_Attendance_${company}_${today}.xlsx`);
+            
+            showMessage(`✅ Today's data exported (${records.length} records)`, 'success');
+        }
+
+        function exportAllToExcel() {
+            const records = getAllRecords();
+            if (records.length === 0) {
+                showMessage('❌ No data available', 'error');
+                return;
+            }
+
+            exportToExcel(); // Uses all records by default
+        }
+
+        // Analytics Functions
+        function updateAnalytics() {
+            const records = getAllRecords();
+            const todayRecords = getTodayRecords();
+            
+            // Update stats
+            document.getElementById('stats-container').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${records.length}</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${todayRecords.length}</div>
+                    <div class="stat-label">Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${new Set(records.map(r => r.employee.id)).size}</div>
+                    <div class="stat-label">Unique Employees</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${new Set(records.map(r => r.employee.department)).size}</div>
+                    <div class="stat-label">Departments</div>
+                </div>
+            `;
+
+            // Update department stats
+            const deptStats = calculateDepartmentStats(records);
+            document.getElementById('department-stats').innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Employees</th>
+                            <th>Records</th>
+                            <th>Today</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(deptStats).map(([dept, stats]) => `
+                            <tr>
+                                <td><strong>${dept}</strong></td>
+                                <td>${stats.uniqueEmployees}</td>
+                                <td>${stats.totalRecords}</td>
+                                <td>${stats.todayRecords}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            // Update recent activity
+            const recent = records.slice(-10).reverse();
+            document.querySelector('#recent-activity tbody').innerHTML = recent.map(record => `
+                <tr>
+                    <td>${record.attendance.time}</td>
+                    <td>${record.employee.name}</td>
+                    <td>${record.employee.department}</td>
+                    <td>${record.location.address.split(',')[0]}</td>
+                    <td>✅ Verified</td>
+                </tr>
+            `).join('');
+        }
+
+        function calculateDepartmentStats(records) {
+            const stats = {};
+            const today = new Date().toLocaleDateString();
+            
+            records.forEach(record => {
+                const dept = record.employee.department || 'Unknown';
+                if (!stats[dept]) {
+                    stats[dept] = {
+                        uniqueEmployees: new Set(),
+                        totalRecords: 0,
+                        todayRecords: 0
+                    };
+                }
+                
+                stats[dept].uniqueEmployees.add(record.employee.id);
+                stats[dept].totalRecords++;
+                
+                if (record.attendance.date === today) {
+                    stats[dept].todayRecords++;
+                }
+            });
+
+            // Convert Sets to counts
+            Object.keys(stats).forEach(dept => {
+                stats[dept].uniqueEmployees = stats[dept].uniqueEmployees.size;
+            });
+
+            return stats;
+        }
+
+        // Admin Settings
+        function loadAdminSettings() {
+            const settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+            document.getElementById('companyName').value = settings.companyName || '';
+            document.getElementById('adminEmail').value = settings.adminEmail || '';
+            document.getElementById('autoBackup').value = settings.autoBackup || 'disabled';
+        }
+
+        function saveAdminSettings() {
+            const settings = {
+                companyName: document.getElementById('companyName').value,
+                adminEmail: document.getElementById('adminEmail').value,
+                autoBackup: document.getElementById('autoBackup').value,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+            showMessage('✅ Admin settings saved!', 'success');
+            updateSystemInfo();
+        }
+
+        function updateSystemInfo() {
+            const records = getAllRecords();
+            const settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+            
+            document.getElementById('system-info').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${records.length}</div>
+                        <div class="stat-label">Total Records</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${(localStorage.getItem(STORAGE_KEYS.ATTENDANCE) || '').length / 1024 | 0} KB</div>
+                        <div class="stat-label">Data Size</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${settings.companyName || 'Not Set'}</div>
+                        <div class="stat-label">Company</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">v1.0</div>
+                        <div class="stat-label">System Version</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Data Management
+        function backupData() {
+            const data = {
+                records: getAllRecords(),
+                settings: JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}'),
+                backupTime: new Date().toISOString()
+            };
+            
+            localStorage.setItem(STORAGE_KEYS.BACKUP, JSON.stringify(data));
+            showMessage('✅ Data backup created successfully!', 'success');
+        }
+
+        function restoreData() {
+            const backup = JSON.parse(localStorage.getItem(STORAGE_KEYS.BACKUP) || '{}');
+            if (!backup.records) {
+                showMessage('❌ No backup found', 'error');
+                return;
+            }
+            
+            if (confirm('Restore backup? This will replace current data.')) {
+                localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(backup.records || []));
+                localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(backup.settings || {}));
+                showMessage('✅ Data restored from backup!', 'success');
+                loadAllRecords();
+                updateAnalytics();
+            }
+        }
+
+        // ... (Include all your existing camera, location, and UI functions from previous code)
+
+        // Modified submit function for admin system
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            if (!currentLocation) {
+                showMessage('❌ Please get location first', 'error');
+                return;
+            }
+
+            const employeeData = {
+                id: document.getElementById('employeeId').value || 'EMP_' + Date.now(),
+                name: document.getElementById('employeeName').value || 'Unknown Employee',
+                department: document.getElementById('department').value || 'Unknown'
+            };
+
+            const locationData = {
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+                accuracy: currentLocation.accuracy,
+                address: currentAddress
+            };
+
+            const capturedImage = document.getElementById('captured-image').src;
+
+            const record = createAttendanceRecord(employeeData, locationData, capturedImage);
+            saveAttendanceRecord(record);
+
+            showMessage(`✅ Attendance recorded for ${employeeData.name} (${employeeData.department})`, 'success');
+            
+            // Reset form
+            document.getElementById('retake-btn').click();
+            document.getElementById('employeeId').value = '';
+            document.getElementById('employeeName').value = '';
+            document.getElementById('department').value = '';
+            
+            // Update displays
+            setTimeout(() => {
+                showTab('analytics');
+                updateAnalytics();
+            }, 1500);
+        });
+
+        // Initialize the system
+        window.addEventListener('load', initializeSystem);
+    </script>
+</body>
+</html>
